@@ -6,11 +6,11 @@ Laravel Patcher
 ![GitHub Workflow Status](https://github.com/digital-entropy/laravel-patcher/workflows/tests/badge.svg)
 
 #### Requirements:
-* PHP : 8.1 / 8.2
-* Laravel: 9.\* / 10.\*
+* PHP : 8.\*
+* Laravel: 9.\* / 10.\* / 11.\*
 
 ### Installation
-Do either of this methods below.
+Do either of these methods below.
 * via shell 
 ```shell script
 composer require dentro/laravel-patcher
@@ -33,12 +33,12 @@ patches table creation.
     
 ### Usage 
 #### Create New Patch
-for creating new patch you just need to run these following command 
+for creating a new patch, you need to run these following command 
 ```shell script
 php artisan make:patch what_do_you_want_to_patch
 ```
-after run those command, you will see new file in `patches` folder. 
-Those file will be like:
+After run that command, you will see new file in `patches` folder. 
+That file will be like:
 ```php
 <?php
 
@@ -52,7 +52,7 @@ class WhatDoYouWantToPatch extends Patch
     }
 }
 ```
-Method `patch` on these file will be filled with your logic. 
+Method `patch` on this file will be filled with your logic. 
 in ```Dentro\Patcher\Patch``` there is some useful properties 
 that you can use for supporting your patch such as: 
 1. `$container: \Illuminate\Container\Container`

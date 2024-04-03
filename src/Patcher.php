@@ -57,6 +57,11 @@ class Patcher extends Migrator
 
         $perpetualMessage = $patch->isPerpetual ? " <fg=yellow;options=bold>(Perpetual)</>" : "";
 
+        $patch
+            ->setContainer(app())
+            ->setCommand(app('command.patcher'))
+            ->setLogger(app('log')->driver(PatcherServiceProvider::$LOG_CHANNEL));
+
         $info = '<fg=yellow>Patching: </>'.$name.$perpetualMessage;
 
         $this->write(
@@ -68,11 +73,6 @@ class Patcher extends Migrator
         $startTime = microtime(true);
 
         if ($this->isEligible($patch)) {
-            $patch
-                ->setContainer(app())
-                ->setCommand(app('command.patcher'))
-                ->setLogger(app('log')->driver(PatcherServiceProvider::$LOG_CHANNEL));
-
             $this->runPatch($patch);
 
             $runTime = round(microtime(true) - $startTime, 2);
