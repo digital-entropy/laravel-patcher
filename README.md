@@ -7,7 +7,7 @@ Laravel Patcher
 
 #### Requirements:
 * PHP : 8.\*
-* Laravel: 9.\* / 10.\* / 11.\*
+* Laravel: 9.\* / 10.\* / 11.\* / 12.\*
 
 ### Installation
 Do either of these methods below.
