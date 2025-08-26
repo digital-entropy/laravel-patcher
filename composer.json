@@ -10,7 +10,7 @@
     "require-dev": {
         "roave/security-advisories": "dev-latest",
         "mockery/mockery": "^1.4.2",
-        "phpunit/phpunit": "^10.0",
+        "phpunit/phpunit": "^12.3",
         "orchestra/testbench": "^8.0.10|^9.0.3"
     },
     "license": "MIT",
