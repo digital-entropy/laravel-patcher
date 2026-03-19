@@ -1,44 +1,60 @@
-Laravel Patcher
---
-*A (migration like) patcher for a smoldering production update.* <br>
+## Laravel Patcher
+
+_A (migration like) patcher for a smoldering production update._ <br>
 
 [![Total Downloads](https://poser.pugx.org/dentro/laravel-patcher/downloads)](https://packagist.org/packages/dentro/yalr)
 ![GitHub Workflow Status](https://github.com/digital-entropy/laravel-patcher/workflows/tests/badge.svg)
 
 #### Requirements:
-* PHP : 8.\*
-* Laravel: 9.\* / 10.\* / 11.\* / 12.\*
+
+- PHP : 8.3+
+- Laravel: 9._ / 10._ / 11._ / 12._ / 13.\*
+
+> Compatibility note: starting from `v1.5.0`, this package only supports PHP `8.3` and newer.
 
 ### Installation
+
 Do either of these methods below.
-* via shell 
+
+- via shell
+
 ```shell script
 composer require dentro/laravel-patcher
-``` 
-* adding `"dentro/laravel-patcher": "^1.0"` to `composer.json`
+```
+
+- adding `"dentro/laravel-patcher": "^1.5"` to `composer.json`
+
 ```json
 {
-  "require": {
-    "dentro/laravel-patcher": "^1.0"
-  }
+    "require": {
+        "dentro/laravel-patcher": "^1.5"
+    }
 }
 ```
-### Post Installation 
-> this process is optional, you can skip it though. 
+
+### Post Installation
+
+> this process is optional, you can skip it though.
 
 patches table creation.
+
 ```shell script
  php artisan patcher:install
 ```
-    
-### Usage 
+
+### Usage
+
 #### Create New Patch
-for creating a new patch, you need to run these following command 
+
+for creating a new patch, you need to run these following command
+
 ```shell script
 php artisan make:patch what_do_you_want_to_patch
 ```
-After run that command, you will see new file in `patches` folder. 
+
+After run that command, you will see new file in `patches` folder.
 That file will be like:
+
 ```php
 <?php
 
@@ -48,27 +64,32 @@ class WhatDoYouWantToPatch extends Patch
 {
     public function patch()
     {
-        // 
+        //
     }
 }
 ```
-Method `patch` on this file will be filled with your logic. 
-in ```Dentro\Patcher\Patch``` there is some useful properties 
-that you can use for supporting your patch such as: 
+
+Method `patch` on this file will be filled with your logic.
+in `Dentro\Patcher\Patch` there is some useful properties
+that you can use for supporting your patch such as:
+
 1. `$container: \Illuminate\Container\Container`
 2. `$command: \Illuminate\Console\Command`
 
     > we frequently used `$command` property to print process that we're doing.
-    example: 
+    > example:
+    >
     > ```php
     > $this->command->warn('i patch something danger!');
     > $this->command->confirm('do you wish to continue?');
     > ```
+    >
     > you can learn more about `\Illuminate\Console\Command` [here](https://laravel.com/api/9.x/Illuminate/Console/Command.html).
 
 3. `$logger: \Illuminate\Log\Logger`
 
-    > `$logger` will store log in `storage/logs/patches.log`. if you want to change it, add this line below in your `config/logging.php` in channels section.  
+    > `$logger` will store log in `storage/logs/patches.log`. if you want to change it, add this line below in your `config/logging.php` in channels section.
+    >
     > ```php
     > [
     >     'channels' => [
@@ -79,12 +100,17 @@ that you can use for supporting your patch such as:
     >     ],
     > ];
     > ```
+    >
     > you can learn more about `\Illuminate\Log\Logger` [here](https://laravel.com/api/8.x/Illuminate/Log/Logger.html)
+
 #### Show Patch Status
+
 ```shell script
 php artisan patcher:status
 ```
-Example: 
+
+Example:
+
 ```shell script
 ➜ php artisan patcher:status
 +------+---------------------------------------+-------+
@@ -96,10 +122,13 @@ Example:
 ```
 
 #### Run Pending Patch(es)
+
 ```shell script
 php artisan patcher:run
 ```
+
 Example:
+
 ```shell script
 ➜ php artisan patcher:run
 Patches table created successfully.
@@ -110,10 +139,11 @@ Patched:  2020_10_09_124616_add_attachment_beep (0.06 seconds)
 ```
 
 #### Conditional Patch
-You might need to skip single patch when run ```php artisan patcher:run```. 
-Due to patch is unnecessary or patch is not eligible to run in your environment. 
-Here you can add the ```eligible``` method to your patch class to evaluate the condition 
-before running the ```patch``` method.   
+
+You might need to skip single patch when run `php artisan patcher:run`.
+Due to patch is unnecessary or patch is not eligible to run in your environment.
+Here you can add the `eligible` method to your patch class to evaluate the condition
+before running the `patch` method.
 
 ```php
 <?php
@@ -127,7 +157,7 @@ class WhatDoYouWantToPatch extends Patch
     {
         return User::query()->where('id', 331)->exists();
     }
-    
+
     public function patch()
     {
         $user = User::query()->find(331);
@@ -135,7 +165,9 @@ class WhatDoYouWantToPatch extends Patch
     }
 }
 ```
-then the output of ```php artisan patcher:run``` will be:
+
+then the output of `php artisan patcher:run` will be:
+
 ```shell script
 ➜ php artisan patcher:run
 Patching: 2020_09_29_190531_fix_double_sections
@@ -145,6 +177,7 @@ Patched:  2020_10_09_124616_add_attachment_beep (0.06 seconds)
 ```
 
 #### Perpetual Patch
+
 In some cases you might also want to run patches script indefinitely, you can change `isPerpetual`
 property on your patch file to `true`
 
