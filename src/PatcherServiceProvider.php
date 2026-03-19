@@ -2,15 +2,16 @@
 
 namespace Dentro\Patcher;
 
-use Illuminate\Log\Logger;
-use Monolog\Logger as Monolog;
-use Monolog\Handler\StreamHandler;
-use Illuminate\Support\ServiceProvider;
+use Dentro\Patcher\Console\InstallCommand;
 use Dentro\Patcher\Console\MakeCommand;
 use Dentro\Patcher\Console\PatchCommand;
 use Dentro\Patcher\Console\StatusCommand;
-use Dentro\Patcher\Console\InstallCommand;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Log\Logger;
+use Illuminate\Support\ServiceProvider;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger as Monolog;
 
 class PatcherServiceProvider extends ServiceProvider
 {
@@ -27,8 +28,6 @@ class PatcherServiceProvider extends ServiceProvider
 
     /**
      * Register the patcher service.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -45,47 +44,60 @@ class PatcherServiceProvider extends ServiceProvider
 
     /**
      * Get the services provided by the provider.
-     *
-     * @return array
      */
     public function provides(): array
     {
-        return array_merge([
-            'dentro.patcher', 'dentro.patcher.repository', 'dentro.patcher.creator',
-        ], array_values($this->commands));
+        return array_merge(
+            [
+                'dentro.patcher',
+                'dentro.patcher.repository',
+                'dentro.patcher.creator',
+            ],
+            array_values($this->commands),
+        );
     }
 
     protected function registerLogger(): void
     {
+        $app = $this->app;
+
         /**
-         * @var $config \Illuminate\Config\Repository
+         * @var $configRepository \Illuminate\Config\Repository
          */
-        $config = $this->app['config'];
+        $configRepository = $app['config'];
         $key = 'logging.channels.'.self::$LOG_CHANNEL;
 
         // check if specified log channel declared in logging.php
         // if there is no declaration we will declare it here.
-        if (! $config->has($key)) {
-            $config->set($key, [
+        if (! $configRepository->has($key)) {
+            $configRepository->set($key, [
                 'driver' => self::LOG_DRIVER_NAME,
-                'path' => $this->app->storagePath().DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'patches.log',
+                'path' => $app->storagePath().
+                    DIRECTORY_SEPARATOR.
+                    'logs'.
+                    DIRECTORY_SEPARATOR.
+                    'patches.log',
             ]);
         }
 
-        $this->app['log']->extend(self::LOG_DRIVER_NAME, function ($app, $config) {
+        $application = $app;
+
+        $app['log']->extend(self::LOG_DRIVER_NAME, function (
+            $app,
+            $config,
+        ) use ($application) {
             $handler = new StreamHandler(
-                $config['path'] ?? $this->app->storagePath().'/logs/patches.log',
-                Monolog::INFO,
+                $config['path'] ??
+                    $application->storagePath().'/logs/patches.log',
+                Level::Info,
                 $config['bubble'] ?? true,
                 $config['permission'] ?? null,
-                $config['locking'] ?? false
+                $config['locking'] ?? false,
             );
 
             return new Logger(
-                new Monolog('patcher', [
-                    $handler,
-                ]),
-                $this->app['events']
+                new Monolog('patcher', [$handler]),
+                $application['events'],
             );
         });
     }
@@ -95,7 +107,12 @@ class PatcherServiceProvider extends ServiceProvider
         $this->app->singleton('dentro.patcher', function ($app) {
             $repository = $app['dentro.patcher.repository'];
 
-            return new Patcher($repository, $app['db'], $app['files'], $app['events']);
+            return new Patcher(
+                $repository,
+                $app['db'],
+                $app['files'],
+                $app['events'],
+            );
         });
     }
 
@@ -153,7 +170,10 @@ class PatcherServiceProvider extends ServiceProvider
     protected function registerPatcherPatchCommand(): void
     {
         $this->app->singleton('command.patcher', function (Application $app) {
-            return new PatchCommand($app->make('dentro.patcher'), $app->make('events'));
+            return new PatchCommand(
+                $app->make('dentro.patcher'),
+                $app->make('events'),
+            );
         });
     }
 }
