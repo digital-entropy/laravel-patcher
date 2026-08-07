@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Migrations\InstallCommand as MigrationInstallCom
 
 class InstallCommand extends MigrationInstallCommand
 {
-    protected $name = 'patcher:install';
+    protected $signature = 'patcher:install {--database= : The database connection to use}';
 
     protected $description = 'Create the patches repository';
 

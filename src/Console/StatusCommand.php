@@ -8,9 +8,21 @@ use Illuminate\Support\Collection;
 
 class StatusCommand extends MigrationStatusCommand
 {
-    protected $name = 'patcher:status';
+    protected $signature = 'patcher:status
+                    {--database= : The database connection to use}
+                    {--pending : Only list pending patches}';
 
     protected $description = 'Show the status of each patches.';
+
+    /**
+     * Laravel >= 13 sets a boolean default on the "pending" option which
+     * conflicts with the VALUE_NONE flag used by this command on older
+     * Laravel versions. No-op to keep behavior consistent across versions.
+     */
+    protected function configureDefaults(): void
+    {
+        //
+    }
 
     /**
      * @var Patcher
