@@ -31,6 +31,8 @@ class PatcherServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/patcher.php', 'patcher');
+
         $this->registerLogger();
 
         $this->registerRepository();
@@ -40,6 +42,16 @@ class PatcherServiceProvider extends ServiceProvider
         $this->registerCreator();
 
         $this->registerCommands($this->commands);
+    }
+
+    /**
+     * Bootstrap the patcher service.
+     */
+    public function boot(): void
+    {
+        $this->publishes([
+            __DIR__.'/../config/patcher.php' => $this->app->configPath('patcher.php'),
+        ], 'patcher-config');
     }
 
     /**
@@ -126,7 +138,11 @@ class PatcherServiceProvider extends ServiceProvider
     protected function registerCreator(): void
     {
         $this->app->singleton('dentro.patcher.creator', function ($app) {
-            return new PatcherCreator($app['files'], $app->basePath('stubs'));
+            return new PatcherCreator(
+                $app['files'],
+                $app->basePath('stubs'),
+                $app['config']->get('patcher.grouping', 'none'),
+            );
         });
     }
 
