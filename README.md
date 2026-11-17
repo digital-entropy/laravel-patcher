@@ -203,3 +203,41 @@ return new class extends Patch
 ```
 
 A perpetual patch is never recorded in the `patches` table, and `patcher:status` shows it as `Perpetual`.
+
+#### Grouping Patches
+
+When an application has been running for years, the `patches` folder can hold hundreds of files.
+You can keep them in one folder per year or per month instead.
+
+Publish the config file:
+
+```shell script
+php artisan vendor:publish --tag=patcher-config
+```
+
+Then set `grouping` in `config/patcher.php`, or set `PATCHER_GROUPING` in your `.env`:
+
+| Value            | New patches are created in | Example                                          |
+| ---------------- | -------------------------- | ------------------------------------------------ |
+| `none` (default) | `patches/`                 | `patches/2024_03_05_101500_fix_totals.php`       |
+| `year`           | `patches/YYYY/`            | `patches/2024/2024_03_05_101500_fix_totals.php`  |
+| `month`          | `patches/YYYY/MM/`         | `patches/2024/03/2024_03_05_101500_fix_totals.php` |
+
+`grouping` only decides where `make:patch` puts new files. `patcher:run` and `patcher:status` always read
+`patches/`, `patches/YYYY/` and `patches/YYYY/MM/`, whatever the setting is, so a patch never stops running
+because of the folder it is in. Any other subfolder (for example `patches/support/`) is ignored.
+
+To move your existing patches into the configured layout, preview the move first, then run it:
+
+```shell script
+php artisan patcher:organize --dry-run
+php artisan patcher:organize
+```
+
+Commit the moved files afterwards. Moving a patch never makes it run again, because only its file name
+is recorded in the `patches` table. Setting `grouping` back to `none` and running `patcher:organize`
+moves everything back into `patches/`.
+
+> Patch file names must be unique across all folders. If the same name exists in two folders,
+> `patcher:run`, `patcher:status` and `patcher:organize` stop with an error that lists both files.
+> Files without a `YYYY_MM_DD_HHMMSS_` prefix are left where they are and reported by `patcher:organize`.
