@@ -75,7 +75,7 @@ class Patcher extends Migrator
         if ($this->isEligible($patch)) {
             $this->runPatch($patch);
 
-            $runTime = round(microtime(true) - $startTime, 2);
+            $runTime = number_format((microtime(true) - $startTime) * 1000, 2);
 
             $this->write(
                 TwoColumnDetail::class,

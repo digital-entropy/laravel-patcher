@@ -81,9 +81,12 @@ abstract class Patch extends Migration
      * Set Logger instance.
      *
      * @param \Illuminate\Log\Logger $logger
+     * @return $this
      */
-    public function setLogger(Logger $logger): void
+    public function setLogger(Logger $logger): Patch
     {
         $this->logger = $logger;
+
+        return $this;
     }
 }

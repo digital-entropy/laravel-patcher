@@ -2,11 +2,14 @@
 
 namespace Dentro\Patcher\Console;
 
+use Dentro\Patcher\Console\Concerns\ResolvesPatchPath;
 use Illuminate\Support\Str;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 
 class MakeCommand extends MigrateMakeCommand
 {
+    use ResolvesPatchPath;
+
     protected $signature = 'make:patch {name : The name of the patch}';
 
     protected $description = 'Create a new patch file';
@@ -40,10 +43,5 @@ class MakeCommand extends MigrateMakeCommand
         $this->line("<info>Created Patch:</info> $file");
 
         return $file;
-    }
-
-    protected function getMigrationPath(): string
-    {
-        return $this->laravel->basePath().DIRECTORY_SEPARATOR.'patches';
     }
 }

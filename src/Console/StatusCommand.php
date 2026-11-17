@@ -2,12 +2,15 @@
 
 namespace Dentro\Patcher\Console;
 
+use Dentro\Patcher\Console\Concerns\ResolvesPatchPath;
 use Dentro\Patcher\Patcher;
 use Illuminate\Database\Console\Migrations\StatusCommand as MigrationStatusCommand;
 use Illuminate\Support\Collection;
 
 class StatusCommand extends MigrationStatusCommand
 {
+    use ResolvesPatchPath;
+
     protected $signature = 'patcher:status
                     {--database= : The database connection to use}
                     {--pending : Only list pending patches}';
@@ -72,11 +75,7 @@ class StatusCommand extends MigrationStatusCommand
                 $status = $defaultStatus;
 
                 if (in_array($migrationName, $ran)) {
-                    $status = '<fg=green;options=bold>Ran</>';
-                }
-
-                if (in_array($migrationName, $ran)) {
-                    $status = '['.$batches[$migrationName].'] '.$status;
+                    $status = '['.$batches[$migrationName].'] <fg=green;options=bold>Ran</>';
                 }
 
                 if ($status === $defaultStatus) {
@@ -89,15 +88,5 @@ class StatusCommand extends MigrationStatusCommand
 
                 return [$migrationName, $status];
             });
-    }
-
-    /**
-     * Get a migration path (either specified by '--path' option or default location).
-     *
-     * @return string
-     */
-    protected function getMigrationPath(): string
-    {
-        return $this->laravel->basePath().DIRECTORY_SEPARATOR.'patches';
     }
 }
