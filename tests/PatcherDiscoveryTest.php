@@ -91,6 +91,16 @@ class PatcherDiscoveryTest extends TestCase
         $this->patcher->getMigrationFiles([$this->dir]);
     }
 
+    public function testSamePathGivenTwiceIsNotADuplicate(): void
+    {
+        $this->touchPatch('2024/03/2024_03_05_000000_a.php');
+
+        $this->assertSame(
+            ['2024_03_05_000000_a' => $this->dir.'/2024/03/2024_03_05_000000_a.php'],
+            $this->patcher->getMigrationFiles([$this->dir, $this->dir])
+        );
+    }
+
     public function testExplicitPhpPathIsPassedThrough(): void
     {
         $this->touchPatch('anywhere/2024_01_01_000000_one.php');

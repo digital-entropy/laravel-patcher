@@ -169,7 +169,7 @@ class Patcher extends Migrator
             foreach ($this->patchFilesIn($path) as $file) {
                 $name = $this->getMigrationName($file);
 
-                if (isset($files[$name])) {
+                if (isset($files[$name]) && $files[$name] !== $file) {
                     throw new RuntimeException("Duplicate patch name [{$name}] found in: {$files[$name]}, {$file}");
                 }
 

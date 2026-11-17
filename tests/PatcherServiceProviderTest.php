@@ -3,6 +3,7 @@
 namespace Dentro\Patcher\Tests;
 
 use Dentro\Patcher\PatcherServiceProvider;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -30,17 +31,42 @@ class PatcherServiceProviderTest extends TestCase
 
     public function testInvalidGroupingOnlyBreaksCommandsThatWrite(): void
     {
-        config(['patcher.grouping' => 'monthly']);
-        $this->app->instance('composer', m::mock(Composer::class)->shouldIgnoreMissing());
-        $this->app->forgetInstance('dentro.patcher.creator');
-        $this->app->forgetInstance('command.patcher.make');
+        $patches = base_path('patches');
+        (new Filesystem)->deleteDirectory($patches);
+        (new Filesystem)->ensureDirectoryExists($patches.'/2024/03');
+        file_put_contents($patches.'/2024/03/2024_03_05_000000_probe.php', <<<'PHP'
+<?php
 
-        $this->artisan('list')->assertExitCode(0);
-        $this->artisan('patcher:status')->assertExitCode(0);
+return new class extends Dentro\Patcher\Patch
+{
+    public function patch(): void
+    {
+        $this->command->line('probe patch ran');
+    }
+};
+PHP);
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Supported values: none, year, month.');
+        try {
+            config(['patcher.grouping' => 'monthly']);
+            $this->app->instance('composer', m::mock(Composer::class)->shouldIgnoreMissing());
+            $this->app->forgetInstance('dentro.patcher.creator');
+            $this->app->forgetInstance('command.patcher.make');
 
-        $this->artisan('make:patch', ['name' => 'x'])->run();
+            $this->artisan('list')->assertExitCode(0);
+            $this->artisan('patcher:install')->assertExitCode(0);
+            $this->artisan('patcher:status')
+                ->expectsOutputToContain('2024_03_05_000000_probe')
+                ->assertExitCode(0);
+            $this->artisan('patcher:run')
+                ->expectsOutputToContain('probe patch ran')
+                ->assertExitCode(0);
+
+            $this->expectException(InvalidArgumentException::class);
+            $this->expectExceptionMessage('Supported values: none, year, month.');
+
+            $this->artisan('make:patch', ['name' => 'x'])->run();
+        } finally {
+            (new Filesystem)->deleteDirectory($patches);
+        }
     }
 }

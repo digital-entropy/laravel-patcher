@@ -227,6 +227,11 @@ Then set `grouping` in `config/patcher.php`, or set `PATCHER_GROUPING` in your `
 `patches/`, `patches/YYYY/` and `patches/YYYY/MM/`, whatever the setting is, so a patch never stops running
 because of the folder it is in. Any other subfolder (for example `patches/support/`) is ignored.
 
+> **Upgrading:** older versions only read `patches/` itself. If you already keep files in folders named
+> like a year (`patches/2019/`) or a year and month (`patches/2019/05/`), they are read from now on.
+> Any `*_*.php` file there that is not in the `patches` table yet will run on the next `patcher:run`.
+> Run `php artisan patcher:status --pending` after upgrading to check, and move such files elsewhere if they are not patches.
+
 To move your existing patches into the configured layout, preview the move first, then run it:
 
 ```shell script
