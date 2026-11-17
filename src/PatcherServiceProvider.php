@@ -4,6 +4,7 @@ namespace Dentro\Patcher;
 
 use Dentro\Patcher\Console\InstallCommand;
 use Dentro\Patcher\Console\MakeCommand;
+use Dentro\Patcher\Console\OrganizeCommand;
 use Dentro\Patcher\Console\PatchCommand;
 use Dentro\Patcher\Console\StatusCommand;
 use Illuminate\Contracts\Foundation\Application;
@@ -24,6 +25,7 @@ class PatcherServiceProvider extends ServiceProvider
         'PatcherInstall' => 'command.patcher.install',
         'PatcherMake' => 'command.patcher.make',
         'PatcherStatus' => 'command.patcher.status',
+        'PatcherOrganize' => 'command.patcher.organize',
     ];
 
     /**
@@ -180,6 +182,13 @@ class PatcherServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.patcher.status', function ($app) {
             return new StatusCommand($app['dentro.patcher']);
+        });
+    }
+
+    protected function registerPatcherOrganizeCommand(): void
+    {
+        $this->app->singleton('command.patcher.organize', function ($app) {
+            return new OrganizeCommand($app['dentro.patcher'], $app['files'], $app['composer']);
         });
     }
 
