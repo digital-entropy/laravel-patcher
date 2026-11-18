@@ -4,6 +4,7 @@ namespace Dentro\Patcher;
 
 use Dentro\Patcher\Console\InstallCommand;
 use Dentro\Patcher\Console\MakeCommand;
+use Dentro\Patcher\Console\OrganizeCommand;
 use Dentro\Patcher\Console\PatchCommand;
 use Dentro\Patcher\Console\StatusCommand;
 use Illuminate\Contracts\Foundation\Application;
@@ -24,6 +25,7 @@ class PatcherServiceProvider extends ServiceProvider
         'PatcherInstall' => 'command.patcher.install',
         'PatcherMake' => 'command.patcher.make',
         'PatcherStatus' => 'command.patcher.status',
+        'PatcherOrganize' => 'command.patcher.organize',
     ];
 
     /**
@@ -31,6 +33,8 @@ class PatcherServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/patcher.php', 'patcher');
+
         $this->registerLogger();
 
         $this->registerRepository();
@@ -40,6 +44,16 @@ class PatcherServiceProvider extends ServiceProvider
         $this->registerCreator();
 
         $this->registerCommands($this->commands);
+    }
+
+    /**
+     * Bootstrap the patcher service.
+     */
+    public function boot(): void
+    {
+        $this->publishes([
+            __DIR__.'/../config/patcher.php' => $this->app->configPath('patcher.php'),
+        ], 'patcher-config');
     }
 
     /**
@@ -126,7 +140,11 @@ class PatcherServiceProvider extends ServiceProvider
     protected function registerCreator(): void
     {
         $this->app->singleton('dentro.patcher.creator', function ($app) {
-            return new PatcherCreator($app['files'], $app->basePath('stubs'));
+            return new PatcherCreator(
+                $app['files'],
+                $app->basePath('stubs'),
+                $app['config']->get('patcher.grouping', 'none'),
+            );
         });
     }
 
@@ -164,6 +182,13 @@ class PatcherServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.patcher.status', function ($app) {
             return new StatusCommand($app['dentro.patcher']);
+        });
+    }
+
+    protected function registerPatcherOrganizeCommand(): void
+    {
+        $this->app->singleton('command.patcher.organize', function ($app) {
+            return new OrganizeCommand($app['dentro.patcher'], $app['files'], $app['composer']);
         });
     }
 

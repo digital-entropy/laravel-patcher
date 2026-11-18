@@ -8,6 +8,7 @@ use Illuminate\Console\View\Components\Info;
 use Illuminate\Console\View\Components\TwoColumnDetail;
 use Illuminate\Database\Migrations\Migrator;
 use InvalidArgumentException;
+use RuntimeException;
 
 class Patcher extends Migrator
 {
@@ -75,7 +76,7 @@ class Patcher extends Migrator
         if ($this->isEligible($patch)) {
             $this->runPatch($patch);
 
-            $runTime = round(microtime(true) - $startTime, 2);
+            $runTime = number_format((microtime(true) - $startTime) * 1000, 2);
 
             $this->write(
                 TwoColumnDetail::class,
@@ -147,6 +148,70 @@ class Patcher extends Migrator
         }
 
         $callback();
+    }
+
+    /**
+     * Get all patch files in the given paths, keyed and sorted by patch name.
+     *
+     * Patches are read from each path itself and from its "YYYY" and "YYYY/MM"
+     * subfolders, whatever grouping is configured. Other folders are ignored.
+     *
+     * @param  string[]|string  $paths
+     * @return array<string, string>
+     *
+     * @throws \RuntimeException when two files share a patch name
+     */
+    public function getMigrationFiles($paths)
+    {
+        $files = [];
+
+        foreach ((array) $paths as $path) {
+            foreach ($this->patchFilesIn($path) as $file) {
+                $name = $this->getMigrationName($file);
+
+                if (isset($files[$name]) && $files[$name] !== $file) {
+                    throw new RuntimeException("Duplicate patch name [{$name}] found in: {$files[$name]}, {$file}");
+                }
+
+                $files[$name] = $file;
+            }
+        }
+
+        ksort($files);
+
+        return $files;
+    }
+
+    /**
+     * List patch files in a path and its year / month folders.
+     *
+     * @return string[]
+     */
+    protected function patchFilesIn(string $path): array
+    {
+        if (str_ends_with($path, '.php')) {
+            return [$path];
+        }
+
+        $directories = [$path];
+
+        foreach ($this->files->glob($path.'/[0-9][0-9][0-9][0-9]', GLOB_ONLYDIR) as $year) {
+            $directories[] = $year;
+
+            foreach ($this->files->glob($year.'/[0-9][0-9]', GLOB_ONLYDIR) as $month) {
+                if (preg_match('/^(0[1-9]|1[0-2])$/', basename($month))) {
+                    $directories[] = $month;
+                }
+            }
+        }
+
+        $files = [];
+
+        foreach ($directories as $directory) {
+            array_push($files, ...$this->files->glob($directory.'/*_*.php'));
+        }
+
+        return $files;
     }
 
     public function getPatcherObject(string $path): Patch
