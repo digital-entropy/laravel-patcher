@@ -2,12 +2,14 @@
 
 namespace Dentro\Patcher\Console;
 
+use Dentro\Patcher\Console\Concerns\ResolvesPatchPath;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\Console\Migrations\MigrateCommand;
 
 class PatchCommand extends MigrateCommand
 {
     use ConfirmableTrait;
+    use ResolvesPatchPath;
 
     protected $signature = 'patcher:run {--force : Force the operation to run when in production}';
 
@@ -43,10 +45,5 @@ class PatchCommand extends MigrateCommand
     protected function getMigrationPaths(): array
     {
         return [$this->getMigrationPath()];
-    }
-
-    protected function getMigrationPath(): string
-    {
-        return $this->laravel->basePath().DIRECTORY_SEPARATOR.'patches';
     }
 }
